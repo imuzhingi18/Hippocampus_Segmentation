@@ -10,10 +10,11 @@ from keras.optimizers import Adam
 from keras.regularizers import l2
 from keras.layers.merge import concatenate
 from keras.layers import Conv2D, Input, MaxPooling2D, UpSampling2D
+
 weight_decay = 1e-4
 
 
-#def get_unet(input_dim, num_output_classes):
+# def get_unet(input_dim, num_output_classes):
 def get_unet(input_dim, output_dim, num_output_classes):
     img_input = Input(shape=input_dim, name='image')
     x1 = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1', trainable=True)(img_input)
@@ -38,12 +39,12 @@ def get_unet(input_dim, output_dim, num_output_classes):
     x4 = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2', trainable=True)(x4)
     ds4 = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x4)
 
-    #Bottleneck x5
+    # Bottleneck x5
     x5 = Conv2D(1024, (3, 3), activation='relu', padding='same', name='block5_conv1', trainable=True)(ds4)
     x5 = Conv2D(1024, (3, 3), activation='relu', padding='same', name='block5_conv2', trainable=True)(x5)
 
     # Upsampling 1.
-    us1 = concatenate([UpSampling2D(size=(2,2))(x5), x4])
+    us1 = concatenate([UpSampling2D(size=(2, 2))(x5), x4])
     x6 = Conv2D(512, (3, 3), activation='relu', padding='same', name='us1_conv1', trainable=True)(us1)
     x6 = Conv2D(512, (3, 3), activation='relu', padding='same', name='us1_conv2', trainable=True)(x6)
 
@@ -63,16 +64,15 @@ def get_unet(input_dim, output_dim, num_output_classes):
     x9 = Conv2D(64, (3, 3), activation='relu', padding='same', name='us4_conv2', trainable=True)(x9)
 
     dense_prediction = Conv2D(
-                             num_output_classes,
-                             (3,3),
-                             padding='same',
-                             activation='sigmoid',
-                             kernel_initializer='orthogonal',
-                             kernel_regularizer=l2(weight_decay),
-                             bias_regularizer=l2(weight_decay))(x9)
+        num_output_classes,
+        (3, 3),
+        padding='same',
+        activation='sigmoid',
+        kernel_initializer='orthogonal',
+        kernel_regularizer=l2(weight_decay),
+        bias_regularizer=l2(weight_decay))(x9)
 
-
-    model = Model(inputs = img_input, outputs = dense_prediction)
+    model = Model(inputs=img_input, outputs=dense_prediction)
     opt = Adam(1e-4)
-    model.compile(optimizer = opt, loss = 'binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
     return model
